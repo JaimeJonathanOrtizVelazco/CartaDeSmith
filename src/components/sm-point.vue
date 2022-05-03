@@ -18,8 +18,6 @@ export default {
     },
   },
   computed: {
-    // a and b calculations taken from:
-    // https://www.allaboutcircuits.com/technical-articles/mathematical-construction-and-properties-of-the-smith-chart/
     cx: function() {
       let r = this.res;
       let x = this.react;
