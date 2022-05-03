@@ -4,13 +4,6 @@
       <div class="col-9 col-md-9">
         <div class="mx-auto ">
           <smith-chart>
-            <!-- <sm-res-circle
-              :res="1"
-              fill="rgba(0,0,255,0.5)"
-              stroke="orange"
-              stroke-width="2"
-            ></sm-res-circle> -->
-            <!-- Carga -->
             <g fill="none" stroke-width="3" :stroke="CargaDisplay">
               <circle :cx="radius" :cy="radius" :r="r" :strohe="CargaDisplay" />
               <sm-point
@@ -56,7 +49,6 @@
               />
             </g>
             <!-- Admitancia -->
-
             <sm-point
               :res="pointAdmitancia.res"
               :react="pointAdmitancia.react"
@@ -282,14 +274,12 @@
               Ocultar
             </div>
           </div>
-          <p>Longitud: {{ longitudStub }}</p>
-          <p>Distancia a la carga: {{ distanciaStubCarga }}</p>
+          <p>Longitud L: {{ longitudSuceb }}</p>
+          <p>Distancia de la carga al stub: {{ longAdmiStub }}</p>
         </div>
       </div>
     </div>
-    {{ beta }}
-    <hr />
-    {{ betaPrima }}
+    {{ coefibeforrw }}
   </div>
 </template>
 <script>
@@ -415,12 +405,6 @@ export default {
       let r = Math.sqrt(Math.pow(this.cx, 2) + Math.pow(this.cy, 2));
       return r;
     },
-    rAdmitancia: function() {
-      let r = Math.sqrt(
-        Math.pow(this.cxAdmitancia, 2) + Math.pow(this.cyAdmitancia, 2)
-      );
-      return r;
-    },
     accionImpedancia: function() {
       if (this.impedanciaEntrada == 0) {
         return "Calcular";
@@ -433,33 +417,26 @@ export default {
     return {
       impedanciaCarac: 0,
       impedanciaCarga: 0,
-      angle: 0,
-      reactCalculated: 0,
       impedanciaEntrada: "",
       point: { res: 1, react: 0 },
       imped: { res: 1, react: 0 },
       pointAdmitancia: { res: 1, react: 0 },
       p: { h: 1, angle: 0 },
-      pAdmitancia: { h: 1, angle: 0 },
       l: 0,
       stubPoint: { x: 0, y: 0 },
       sucebPoint: { x: 0, y: 0 },
-      angulocarga: 0,
-      anguloimpentrada: 0,
       frecuencia: 0,
       longLinea: "",
-      longitudStub: "",
-      distanciaStubCarga: "",
+      longitudSuceb: "",
+      longAdmiStub: "",
       er: 1,
-      beta: 0,
-      betaPrima: 0,
       coeficiente: "",
-      radius: 400,
       CoeficienteDisplay: "green",
       CargaDisplay: "blue",
       ImpedanciaDisplay: "red",
       AdmitanciaDisplay: "purple",
       StubDisplay: "orange",
+      radius: 400,
       SucepDisplay: "cyan",
       circleRepre: {
         width: "10px",
@@ -467,11 +444,6 @@ export default {
         "border-radius": "50%",
       },
     };
-  },
-  props: {
-    stroke: {
-      default: "blue",
-    },
   },
   methods: {
     todo() {
@@ -483,9 +455,9 @@ export default {
     },
     addPoint() {
       let coef = this.pCoef();
+      this.coefibeforrw = coef;
       this.p.h = math.abs(coef);
-      this.p.angle =
-        (math.atan(coef.im / (coef.re == 0 ? 1 : coef.re)) * 180) / math.pi;
+      this.p.angle = (math.atan2(coef.im, coef.re) * 180) / math.pi;
       this.coeficiente = this.p.h + "∠" + this.p.angle;
     },
     localizarCarga() {
@@ -495,41 +467,35 @@ export default {
     },
     impedancia() {
       if (this.impedanciaEntrada == "") {
-        this.beta = (2 * math.pi * math.sqrt(this.er)) / this.lambdaCero();
+        let beta = (2 * math.pi * math.sqrt(this.er)) / this.lambdaCero();
         let carga = this.carga();
         if (carga.re == 0 && carga.im == 0) {
-          if (math.abs(this.beta * this.l) * 10 < 1) {
+          if (math.abs(beta * this.l) * 10 < 1) {
             this.impedanciaEntrada = math.complex(
               0,
-              this.impedanciaCarac * this.beta * this.l
+              this.impedanciaCarac * beta * this.l
             );
           } else {
             this.impedanciaEntrada = math.multiply(
               this.impedanciaCarac,
               math.divide(
-                math.subtract(
-                  1,
-                  math.exp(math.complex(0, -2 * this.beta * this.l))
-                ),
-                math.add(1, math.exp(math.complex(0, -2 * this.beta * this.l)))
+                math.subtract(1, math.exp(math.complex(0, -2 * beta * this.l))),
+                math.add(1, math.exp(math.complex(0, -2 * beta * this.l)))
               )
             );
           }
         } else if (this.p.h >= 0.99 && this.p.angle <= 0.1) {
-          if (math.abs(this.beta * this.l) * 10 < 1) {
+          if (math.abs(beta * this.l) * 10 < 1) {
             this.impedanciaEntrada = math.divide(
               this.impedanciaCarac,
-              math.complex(0, this.beta * this.l)
+              math.complex(0, beta * this.l)
             );
           } else {
             this.impedanciaEntrada = math.multiply(
               this.impedanciaCarac,
               math.divide(
-                math.add(1, math.exp(math.complex(0, -2 * this.beta * this.l))),
-                math.subtract(
-                  1,
-                  math.exp(math.complex(0, -2 * this.beta * this.l))
-                )
+                math.add(1, math.exp(math.complex(0, -2 * beta * this.l))),
+                math.subtract(1, math.exp(math.complex(0, -2 * beta * this.l)))
               )
             );
           }
@@ -542,14 +508,14 @@ export default {
                 1,
                 math.multiply(
                   coef,
-                  math.exp(math.complex(0, -2 * this.beta * this.l))
+                  math.exp(math.complex(0, -2 * beta * this.l))
                 )
               ),
               math.subtract(
                 1,
                 math.multiply(
                   coef,
-                  math.exp(math.complex(0, -2 * this.beta * this.l))
+                  math.exp(math.complex(0, -2 * beta * this.l))
                 )
               )
             )
@@ -558,21 +524,22 @@ export default {
       } else {
         this.impedanciaEntrada = math.complex(this.impedanciaEntrada);
       }
-      let impedCalc = math.divide(this.impedanciaEntrada, this.impedanciaCarac);
-      this.imped.res = impedCalc.re;
-      this.imped.react = impedCalc.im;
+      let impedanciaNormalizada = math.divide(
+        this.impedanciaEntrada,
+        this.impedanciaCarac
+      );
+      this.imped.res = impedanciaNormalizada.re;
+      this.imped.react = impedanciaNormalizada.im;
     },
     longitudLinea() {
       let angulocarga =
         ((math.acos(this.cx / this.rad(this.cx, this.cy)) * 180) / math.pi) *
         (-math.abs(this.cy) / this.cy);
-      this.angulocarga = angulocarga;
       let anguloimpentrada =
         ((math.acos(this.cxImped / this.rad(this.cxImped, this.cyImped)) *
           180) /
           math.pi) *
         (-math.abs(this.cyImped) / this.cyImped);
-      this.anguloimpentrada = anguloimpentrada;
       let angulolinea = 0;
       if (angulocarga < 0) {
         if (anguloimpentrada > angulocarga) {
@@ -598,38 +565,61 @@ export default {
       }
     },
     longitudAdmitanciaStub() {
-      let angulocarga =
-        ((math.acos(this.cx / this.rad(this.cx, this.cy)) * 180) / math.pi) *
-        (-math.abs(this.cy) / this.cy);
-      this.angulocarga = angulocarga;
-      let anguloimpentrada =
-        ((math.acos(this.cxImped / this.rad(this.cxImped, this.cyImped)) *
+      let anguloAdmitancia =
+        ((math.acos(
+          this.cxAdmitancia / this.rad(this.cxAdmitancia, this.cyAdmitancia)
+        ) *
           180) /
           math.pi) *
-        (-math.abs(this.cyImped) / this.cyImped);
-      this.anguloimpentrada = anguloimpentrada;
+        (-math.abs(this.cyAdmitancia) / this.cyAdmitancia);
+      let angulostub =
+        ((math.acos(
+          this.stubPoint.x / this.rad(this.stubPoint.x, this.stubPoint.y)
+        ) *
+          180) /
+          math.pi) *
+        (-math.abs(this.stubPoint.y) / this.stubPoint.y);
       let angulolinea = 0;
-      if (angulocarga < 0) {
-        if (anguloimpentrada > angulocarga) {
-          angulolinea = 360 + angulocarga - anguloimpentrada;
+      if (anguloAdmitancia < 0) {
+        if (angulostub > anguloAdmitancia) {
+          angulolinea = 360 + anguloAdmitancia - angulostub;
         } else {
-          angulolinea = angulocarga - anguloimpentrada;
+          angulolinea = anguloAdmitancia - angulostub;
         }
       } else {
-        if (angulocarga > anguloimpentrada) {
-          angulolinea = angulocarga - anguloimpentrada;
+        if (anguloAdmitancia > angulostub) {
+          angulolinea = anguloAdmitancia - angulostub;
         } else {
-          angulolinea = 360 + angulocarga - anguloimpentrada;
+          angulolinea = 360 + anguloAdmitancia - angulostub;
         }
       }
       if (this.frecuencia > 0) {
-        this.longLinea =
+        this.longAdmiStub =
           "" +
           ((angulolinea * 0.5) / 360) *
             (this.lambdaCero() / math.sqrt(this.er)) +
           " m";
       } else {
-        this.longLinea = "" + (angulolinea * 0.5) / 360 + " λ";
+        this.longAdmiStub = "" + (angulolinea * 0.5) / 360 + " λ";
+      }
+    },
+    longitudL() {
+      let anguloSuceb =
+        ((math.acos(
+          this.sucebPoint.x / this.rad(this.sucebPoint.x, this.sucebPoint.y)
+        ) *
+          180) /
+          math.pi) *
+        (-math.abs(this.sucebPoint.y) / this.sucebPoint.y);
+      let angulolinea = math.abs(anguloSuceb);
+      if (this.frecuencia > 0) {
+        this.longitudSuceb =
+          "" +
+          ((angulolinea * 0.5) / 360) *
+            (this.lambdaCero() / math.sqrt(this.er)) +
+          " m";
+      } else {
+        this.longitudSuceb = "" + (angulolinea * 0.5) / 360 + " λ";
       }
     },
     stub() {
@@ -650,21 +640,12 @@ export default {
       let react = -math.sqrt(
         math.divide(-4 * this.stubPoint.x, this.stubPoint.x - this.radius)
       );
-      this.reactCalculated = react;
       let ycircleReact = this.radius / react;
       let radiusReact = this.radius / math.abs(react);
       let disCenterReact = math.sqrt(
         math.pow(-this.radius, 2) + math.pow(-ycircleReact, 2)
       );
-      // let disPuntReact = math.sqrt(
-      //   math.pow(-this.radius, 2) + math.pow(-this.radius - ycircleReact, 2)
-      // );
-      // let beta = math.acos(
-      //   (math.pow(disPuntReact, 2) -
-      //     math.pow(this.radius, 2) -
-      //     math.pow(disCenterReact, 2)) /
-      //     (-2 * this.radius * disCenterReact)
-      // );
+
       let betaPrima = math.acos(
         (math.pow(radiusReact, 2) -
           math.pow(this.radius, 2) -
@@ -682,6 +663,8 @@ export default {
         this.sucebPoint.y = this.radius * math.sin((angle * math.pi) / 180);
         this.sucebPoint.x = this.radius * math.cos((angle * math.pi) / 180);
       }
+      this.longitudL();
+      this.longitudAdmitanciaStub();
     },
     pCoef() {
       let carga = this.carga();
